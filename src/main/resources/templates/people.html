@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>People</title>
+</head>
+<body>
+<!--Möglichkeit, wie man Objekte foreach ausgeben kann-->
+<!--Here are some people:-->
+<!--<ol>-->
+<!--    <li th:each="person : ${people}" th:text="${person}">Dieser Text wird durch ${person} ersetzt</li>-->
+<!--</ol>-->
+
+<div class="col-8 col-sm-11 mx-auto my-5">
+    <h2 th:text="#{people.list}">People List</h2>
+<!--    Möchte man, dass Tags in unterschiedlichen Sprachen (je nach Browser Settings) angezeigt werden
+        Muss man 1. unter resources -> New -> New Resource Bundle und dieses 'messages' nennen
+            2. Dann bestimmen, welche Sprachen man möchte (mit Abkürzung und Komma: de, en, ...
+            3. In messages.properties überhalb der Konsole auf Reiter resource bundle und dann +
+            4. für ein Tag, wie hier People List die Übersetzungen pflegen-->
+    <form method="post" enctype="multipart/form-data">
+<!--        Um über Select die entsprechende Person aus DB zu löschen-->
+        <table class="table table-striped table-hover table-bordered table-sm">
+            <thead>
+            <tr>
+                <th scope="col" th:text="#{select.list}">Select</th>
+                <th scope="col">ID</th>
+                <th scope="col" th:text="#{last.name}">Last Name</th>
+                <th scope="col" th:text="#{first.name}">First Name</th>
+                <th scope="col">DOB</th>
+                <th scope="col" class="d-sm-none d-md-table-cell">Email</th>
+                <th scope="col">Salary</th>
+                <th scope="col">Photo</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(people)}">
+                <!--            Wenn keine Daten in Tabelle sind, bzw. in people List sind, dann zeige No Data-->
+                <td colspan="6" class="text-center">No Data</td>
+            </tr>
+            <tr th:each="person : ${people}">
+<!--               ${people} bezieht sich auf  -->
+                <td><input type="checkbox" name="selections" th:value="${person.id}"></td>
+<!--                Über th:value erhält die Selection die UNIQUE ID der Person, damit man später genau weiß, welche gelöscht werden soll-->
+                <th scope="row" th:text="${person.id}">1</th>
+                <td th:text="${person.lastName}">Mark</td>
+                <td th:text="${person.firstName}">Otto</td>
+                <!--            <td th:text="${person.getFormattedDOB}">1900-01-01</td>-->
+                <!--            Man kann auch direkt auf Methode aus Person zugreifen, ABER das sollte man NICHT so machen, weil-->
+                <!--            3-Tier Architecture verletzt wird! Hier wird direkt auf Business Layer zugegriffen, man sollte aber-->
+                <!--            wie folgt über die controller / presentation layer für das html zugreifen:-->
+
+                <!--            Durch die doppelte {{ und die @Component Annot. und die LocalDateFormatter Class konvertiert Spring autom. das Format wie gewünscht-->
+<!--                <td th:text="${{person.dob}}">1900-01-01</td>-->
+<!--                Möglichkeit/ Lib, damit man eigenes Date-Format nutzen kann: thymeleaf-extras-java8time:3.0.4.RELEASE-->
+                <td th:text="${#temporals.format(person.dob, 'dd. MMMM, yyyy')}">1900-01-01</td>
+                <td th:text="${person.email}" class="d-sm-none d-md-table-cell">1900-01-01</td>
+                <td class="text-end" th:text="${{person.salary}}">X</td>
+<!--                <td th:text="${person.photoFileName}">X</td>-->
+                <td><img th:if="${person.photoFileName}" th:src="@{people/images/{filename}(filename=${person.photoFileName})}" height="32px" width="32px"></td>
+<!--                               GET Request auf people/images/person.photoFileName, welche über Controller abgefangen werden muss
+                                    {filename} ist eine Thymeleaf Variable, die man mit (filename=${person.photoFileName}) definiert, bzw. auf eine Controller Var mapped
+                                    -> siehe getResource() in PeopleController-->
+            </tr>
+            <!--        Wenn man Element nicht mehr anzeigen möchte-->
+            <tr th:remove="all">
+                <th scope="row">2</th>
+                <td>Jacob</td>
+                <td>Thornton</td>
+                <td>@fat</td>
+            </tr>
+            <tr th:remove="all">
+                <th scope="row">2</th>
+                <td>Jacob</td>
+                <td>Thornton</td>
+                <td>@fat</td>
+            </tr>
+            </tbody>
+        </table>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+                <li th:classappend="${people.isFirst} ? 'disabled'" class="page-item"><a class="page-link" th:href="@{people(page=${people.getNumber - 1})}">Previous</a></li>
+                <li th:each="page : ${#numbers.sequence(0,people.getTotalPages -1)}" th:classappend="${people.number} == ${page} ? 'active'" class="page-item"><a class="page-link" th:href="@{people(page=${page})}" th:text="${page + 1}">1</a></li>
+                <li th:classappend="${people.isLast} ? 'disabled'" class="page-item"><a class="page-link" th:href="@{people(page=${people.getNumber + 1})}">Next</a></li>
+            </ul>
+        </nav>
+        <div class="mb-3">
+            <label for="csvFile" class="form-label">CSV Mass-Upload</label>
+            <input class="form-control" type="file" id="csvFile" name="csvFile">
+        </div>
+        <button type="submit" name="action" value="edit" class="btn btn-primary mb-5 me-2">Edit</button>
+        <button type="submit" name="action" value="import" class="btn btn-success mb-5 me-2">Import CSV</button>
+        <button type="submit" name="action" value="delete" class="btn btn-danger mb-5">Delete</button>
+    </form>
+
+    <div th:if="${errorMsg}" class="alert alert-danger" role="alert" th:text="${errorMsg}">
+        A simple danger alert—check it out!
+    </div>
+
+    <h2>Person Form</h2>
+    <form th:object="${person}" method="post" novalidate enctype="multipart/form-data">
+<!--        Sendet man das Form ab, wird ein Post Request an Server versendet,
+            enctype="multipart/form-data" -> Dieses Attribut unterstützt, dass man auch Bilder versenden kann
+            th:object mapped diese Formdaten zu Person Java Objekt
+            Und bspw. th:field="*{firstName}" auf das entsprechende Attribut-->
+        <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input type="text" class="form-control" id="firstName" th:field="*{firstName}" th:errorclass="is-invalid" aria-describedby="firstNameHelp">
+            <div id="validFirstName" class="invalid-feedback" th:errors="*{firstName}">
+                Please choose a username.
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input type="text" class="form-control" id="lastName" th:field="*{lastName}" th:errorclass="is-invalid" aria-describedby="lastNameHelp">
+            <div id="validLastName" class="invalid-feedback" th:errors="*{lastName}">
+                Please choose a username.
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="dob">Date of Birth</label>
+            <input type="date" class="form-control" id="dob" th:field="*{dob}" th:errorclass="is-invalid" aria-describedby="dobHelp">
+            <div id="validDob" class="invalid-feedback" th:errors="*{dob}">
+                Please choose a username.
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" class="form-control" id="email" th:field="*{email}" th:errorclass="is-invalid" aria-describedby="emailHelp">
+            <div id="validEmail" class="invalid-feedback" th:errors="*{email}">
+                Please choose a username.
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="salary">Salary</label>
+            <input type="number" class="form-control" id="salary" th:field="*{salary}" th:errorclass="is-invalid">
+            <div id="validSalary" class="invalid-feedback" th:errors="*{salary}">
+                Please choose a username.
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="photoFileName" class="form-label">Photo File</label>
+            <input class="form-control" type="file" id="photoFileName" th:field="*{photoFileName}">
+        </div>
+        <input type="hidden" th:field="*{id}"/>
+        <button type="submit" name="action" value="save" class="btn btn-primary">Save Person</button>
+    </form>
+</div>
+</body>
+</html>
