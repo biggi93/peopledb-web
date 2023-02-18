@@ -32,8 +32,19 @@ public class PersonService {
     @Transactional // sorgt dafür, dass nur wenn alles(gesamte Methode) erfolgreich war, die Person in DB committed wird
     // Also muss auch der FileUpload erfolgreich sein, damit Datenbank committed wird
     public Person save(Person person, InputStream photoStream) {
+
+        try {
+            if (photoStream.available() != 0) {
+                fileStorageRepository.save(person.getPhotoFileName(), photoStream);
+
+
+            } else {
+                person.setPhotoFileName(null);
+            }
+        } catch (IOException e) {
+            throw new StorageException();
+        }
         Person savedPerson = personRepository.save(person);
-        fileStorageRepository.save(person.getPhotoFileName(), photoStream);
         return savedPerson;
     }
 
@@ -79,7 +90,7 @@ public class PersonService {
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
             bufferedReader.lines()
-                    .skip(1)
+                    .skip(100)
                     .limit(20)
                     .map(Person::parse)
                     .forEach(personRepository::save);

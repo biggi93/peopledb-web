@@ -173,15 +173,18 @@ public class PeopleController {
     }
 
     @PostMapping(params = "action=import")
-    public String importCSV(MultipartFile csvFile) {
+    public String importCSV(MultipartFile csvFile, Model model) {
         log.info("File name: " + csvFile.getOriginalFilename());
         log.info("File size: " + csvFile.getSize());
         try {
             personService.importCSV(csvFile.getInputStream());
+            model.addAttribute("csvSuccess", "Your CSV Mass Upload was successful! Please refresh to see results");
+
         } catch (IOException e) {
             throw new StorageException();
         }
-        return "redirect:people";
+        return "people";
+
     }
 
 }

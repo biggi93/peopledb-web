@@ -1,5 +1,6 @@
 package org.philipp.peopledbweb.data;
 
+import lombok.extern.log4j.Log4j2;
 import org.philipp.peopledbweb.biz.model.Person;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;

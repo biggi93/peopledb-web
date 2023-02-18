@@ -89,6 +89,12 @@
                 <li th:classappend="${people.isLast} ? 'disabled'" class="page-item"><a class="page-link" th:href="@{people(page=${people.getNumber + 1})}">Next</a></li>
             </ul>
         </nav>
+        <div th:if="${csvSuccess}" class="alert alert-success" role="alert" th:text="${csvSuccess}">
+            A simple danger alert—check it out!
+        </div>
+        <div th:if="${errorMsg}" class="alert alert-danger" role="alert" th:text="${errorMsg}">
+            A simple danger alert—check it out!
+        </div>
         <div class="mb-3">
             <label for="csvFile" class="form-label">CSV Mass-Upload</label>
             <input class="form-control" type="file" id="csvFile" name="csvFile">
@@ -98,9 +104,7 @@
         <button type="submit" name="action" value="delete" class="btn btn-danger mb-5">Delete</button>
     </form>
 
-    <div th:if="${errorMsg}" class="alert alert-danger" role="alert" th:text="${errorMsg}">
-        A simple danger alert—check it out!
-    </div>
+
 
     <h2>Person Form</h2>
     <form th:object="${person}" method="post" novalidate enctype="multipart/form-data">
